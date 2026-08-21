@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -34,9 +34,19 @@ class PersonaCreate(BaseModel):
     email: str
     telefono: Optional[str] = None
     direccion: Optional[str] = None
+    foto_perfil: Optional[str] = None
 
-class PersonaResponse(PersonaCreate):
+class PersonaResponse(BaseModel):
     id: int
+    identificacion: str
+    nombre: str
+    apellido: str
+    email: EmailStr
+    telefono: Optional[str] = None
+    direccion: Optional[str] = None
+    foto_perfil: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 # 4. Endpoints que consume Flutter
 
@@ -68,10 +78,10 @@ def create_persona(persona: PersonaCreate):
     cursor = conn.cursor()
     try:
         query = """
-            INSERT INTO persona (identificacion, nombre, apellido, email, telefono, direccion)
-            VALUES (%s, %s, %s, %s, %s, %s) RETURNING *;
+            INSERT INTO persona (identificacion, nombre, apellido, email, telefono, direccion, foto_perfil)
+            VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING *;
         """
-        cursor.execute(query, (persona.identificacion, persona.nombre, persona.apellido, persona.email, persona.telefono, persona.direccion))
+        cursor.execute(query, (persona.identificacion, persona.nombre, persona.apellido, persona.email, persona.telefono, persona.direccion, persona.foto_perfil))
         nueva_persona = cursor.fetchone()
         conn.commit()
         return nueva_persona
@@ -89,10 +99,10 @@ def update_persona(id: str, persona: PersonaCreate):
     try:
         query = """
             UPDATE persona 
-            SET identificacion = %s, nombre = %s, apellido = %s, email = %s, telefono = %s, direccion = %s
+            SET identificacion = %s, nombre = %s, apellido = %s, email = %s, telefono = %s, direccion = %s, foto_perfil = %s
             WHERE (id::text = %s OR identificacion = %s) RETURNING *;
         """
-        cursor.execute(query, (persona.identificacion, persona.nombre, persona.apellido, persona.email, persona.telefono, persona.direccion, str(id), str(id)))
+        cursor.execute(query, (persona.identificacion, persona.nombre, persona.apellido, persona.email, persona.telefono, persona.direccion, persona.foto_perfil, str(id), str(id)))
         updated_persona = cursor.fetchone()
         if not updated_persona:
             raise HTTPException(status_code=404, detail="Persona no encontrada")
