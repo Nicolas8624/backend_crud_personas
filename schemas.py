@@ -22,8 +22,14 @@ class PersonaUpdate(BaseModel):
     direccion: Optional[str] = None
     foto_perfil: Optional[str] = None
 
-class PersonaResponse(PersonaBase):
+class PersonaResponse(BaseModel):
     id: int
+    identificacion: str
+    nombre: str
+    apellido: str
+    email: EmailStr
+    telefono: Optional[str] = None
+    direccion: Optional[str] = None
     foto_perfil: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
