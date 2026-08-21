@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Text
 from database import Base
 
 class Persona(Base):
@@ -11,3 +11,4 @@ class Persona(Base):
     email = Column(String(100), unique=True, index=True, nullable=False)
     telefono = Column(String(20), nullable=True)
     direccion = Column(String(255), nullable=True)
+    foto_perfil = Column(Text, nullable=True)

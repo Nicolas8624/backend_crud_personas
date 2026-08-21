@@ -8,6 +8,7 @@ class PersonaBase(BaseModel):
     email: EmailStr
     telefono: Optional[str] = None
     direccion: Optional[str] = None
+    foto_perfil: Optional[str] = None
 
 class PersonaCreate(PersonaBase):
     pass
@@ -18,6 +19,7 @@ class PersonaUpdate(BaseModel):
     email: Optional[EmailStr] = None
     telefono: Optional[str] = None
     direccion: Optional[str] = None
+    foto_perfil: Optional[str] = None
 
 class PersonaResponse(PersonaBase):
     id: int
