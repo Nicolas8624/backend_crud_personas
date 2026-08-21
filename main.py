@@ -109,8 +109,13 @@ def update_persona(persona_id: int, persona: PersonaUpdate):
         cursor.execute(
             """
             UPDATE persona 
-            SET identificacion = %s, nombre = %s, apellido = %s, email = %s, 
-                telefono = %s, direccion = %s, foto_perfil = %s
+            SET identificacion = %s,
+                nombre = %s,
+                apellido = %s,
+                email = %s,
+                telefono = %s,
+                direccion = %s,
+                foto_perfil = %s
             WHERE id = %s
             RETURNING id, identificacion, nombre, apellido, email, telefono, direccion, foto_perfil;
             """,
@@ -127,21 +132,27 @@ def update_persona(persona_id: int, persona: PersonaUpdate):
         )
         updated = cursor.fetchone()
         conn.commit()
+        
         if not updated:
             raise HTTPException(status_code=404, detail="Persona no encontrada")
         
-        return {
-            "id": updated["id"],
-            "identificacion": updated["identificacion"],
-            "nombre": updated["nombre"],
-            "apellido": updated["apellido"],
-            "email": updated["email"],
-            "telefono": updated["telefono"],
-            "direccion": updated["direccion"],
-            "foto_perfil": updated["foto_perfil"]
-        }
+        # Soporte tanto si cursor devuelve dict (RealDictCursor) o tupla
+        if isinstance(updated, dict):
+            return updated
+        else:
+            return {
+                "id": updated[0],
+                "identificacion": updated[1],
+                "nombre": updated[2],
+                "apellido": updated[3],
+                "email": updated[4],
+                "telefono": updated[5],
+                "direccion": updated[6],
+                "foto_perfil": updated[7]
+            }
     except Exception as e:
         conn.rollback()
+        print(f"ERROR EN PUT PERSONA: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         cursor.close()
