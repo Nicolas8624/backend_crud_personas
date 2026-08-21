@@ -1,9 +1,13 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI(title="API Gestión Personas")
 
@@ -16,8 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 2. PEGA AQUÍ TU URI DE SUPABASE CON TU CONTRASEÑA
-DATABASE_URL = "postgresql://postgres:27dedicde2007@db.otpyngnosdebzeoqyafd.supabase.co:5432/postgres"
+# 2. Lee la URL de conexión desde el archivo .env
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
@@ -27,7 +31,7 @@ class PersonaCreate(BaseModel):
     identificacion: str
     nombre: str
     apellido: str
-    email: EmailStr
+    email: str
     telefono: Optional[str] = None
     direccion: Optional[str] = None
 
