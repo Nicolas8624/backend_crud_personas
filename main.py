@@ -36,6 +36,15 @@ class PersonaCreate(BaseModel):
     direccion: Optional[str] = None
     foto_perfil: Optional[str] = None
 
+class PersonaUpdate(BaseModel):
+    identificacion: Optional[str] = None
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    email: Optional[EmailStr] = None
+    telefono: Optional[str] = None
+    direccion: Optional[str] = None
+    foto_perfil: Optional[str] = None
+
 class PersonaResponse(BaseModel):
     id: int
     identificacion: str
@@ -92,25 +101,48 @@ def create_persona(persona: PersonaCreate):
         cursor.close()
         conn.close()
 
-@app.put("/api/personas/{id}", response_model=PersonaResponse)
-def update_persona(id: str, persona: PersonaCreate):
+@app.put("/api/personas/{persona_id}", response_model=PersonaResponse)
+def update_persona(persona_id: int, persona: PersonaUpdate):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        query = """
+        cursor.execute(
+            """
             UPDATE persona 
-            SET identificacion = %s, nombre = %s, apellido = %s, email = %s, telefono = %s, direccion = %s, foto_perfil = %s
-            WHERE (id::text = %s OR identificacion = %s) RETURNING *;
-        """
-        cursor.execute(query, (persona.identificacion, persona.nombre, persona.apellido, persona.email, persona.telefono, persona.direccion, persona.foto_perfil, str(id), str(id)))
-        updated_persona = cursor.fetchone()
-        if not updated_persona:
-            raise HTTPException(status_code=404, detail="Persona no encontrada")
+            SET identificacion = %s, nombre = %s, apellido = %s, email = %s, 
+                telefono = %s, direccion = %s, foto_perfil = %s
+            WHERE id = %s
+            RETURNING id, identificacion, nombre, apellido, email, telefono, direccion, foto_perfil;
+            """,
+            (
+                persona.identificacion,
+                persona.nombre,
+                persona.apellido,
+                persona.email,
+                persona.telefono,
+                persona.direccion,
+                persona.foto_perfil,
+                persona_id
+            )
+        )
+        updated = cursor.fetchone()
         conn.commit()
-        return updated_persona
+        if not updated:
+            raise HTTPException(status_code=404, detail="Persona no encontrada")
+        
+        return {
+            "id": updated["id"],
+            "identificacion": updated["identificacion"],
+            "nombre": updated["nombre"],
+            "apellido": updated["apellido"],
+            "email": updated["email"],
+            "telefono": updated["telefono"],
+            "direccion": updated["direccion"],
+            "foto_perfil": updated["foto_perfil"]
+        }
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=400, detail=f"Error al actualizar: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         cursor.close()
         conn.close()
