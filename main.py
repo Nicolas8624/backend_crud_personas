@@ -83,16 +83,16 @@ def create_persona(persona: PersonaCreate):
         conn.close()
 
 @app.put("/api/personas/{id}", response_model=PersonaResponse)
-def update_persona(id: int, persona: PersonaCreate):
+def update_persona(id: str, persona: PersonaCreate):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         query = """
             UPDATE persona 
-            SET nombre = %s, apellido = %s, email = %s, telefono = %s, direccion = %s
-            WHERE id = %s RETURNING *;
+            SET identificacion = %s, nombre = %s, apellido = %s, email = %s, telefono = %s, direccion = %s
+            WHERE (id::text = %s OR identificacion = %s) RETURNING *;
         """
-        cursor.execute(query, (persona.nombre, persona.apellido, persona.email, persona.telefono, persona.direccion, id))
+        cursor.execute(query, (persona.identificacion, persona.nombre, persona.apellido, persona.email, persona.telefono, persona.direccion, str(id), str(id)))
         updated_persona = cursor.fetchone()
         if not updated_persona:
             raise HTTPException(status_code=404, detail="Persona no encontrada")
@@ -106,11 +106,11 @@ def update_persona(id: int, persona: PersonaCreate):
         conn.close()
 
 @app.delete("/api/personas/{id}", status_code=status.HTTP_200_OK)
-def delete_persona(id: int):
+def delete_persona(id: str):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("DELETE FROM persona WHERE id = %s RETURNING id;", (id,))
+        cursor.execute("DELETE FROM persona WHERE (id::text = %s OR identificacion = %s) RETURNING id;", (str(id), str(id)))
         deleted = cursor.fetchone()
         if not deleted:
             raise HTTPException(status_code=404, detail="Persona no encontrada")
@@ -122,3 +122,4 @@ def delete_persona(id: int):
     finally:
         cursor.close()
         conn.close()
+
