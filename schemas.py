@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
+from pydantic import BaseModel, EmailStr, ConfigDict
 
 class PersonaBase(BaseModel):
     identificacion: str
