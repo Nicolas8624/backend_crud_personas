@@ -14,6 +14,7 @@ class PersonaCreate(PersonaBase):
     pass
 
 class PersonaUpdate(BaseModel):
+    identificacion: Optional[str] = None
     nombre: Optional[str] = None
     apellido: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -23,6 +24,7 @@ class PersonaUpdate(BaseModel):
 
 class PersonaResponse(PersonaBase):
     id: int
+    foto_perfil: Optional[str] = None
 
     class Config:
         from_attributes = True
